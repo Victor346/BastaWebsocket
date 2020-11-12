@@ -1,0 +1,50 @@
+
+
+<form class="form-signin" method="POST" action="/auth/register">
+  <div class="text-center mb-4">
+    <h1 class="h3 mb-3 font-weight-normal">Register</h1>
+    <p>
+      Template source:
+        <a href="https://getbootstrap.com/docs/4.0/examples/" target="_blank">
+          https://getbootstrap.com/docs/4.0/examples/
+        </a>
+    </p>
+    <p>
+      Already have an account? <a href="/auth/login">Login</a>
+    </p>
+  </div>
+
+  {{#if errors.length}}
+    <div class="alert alert-danger">
+      Oops! the following errors were found:
+      <ul>
+        {{#each errors}}
+          <li>[{{param}}]: {{msg}}</li>
+        {{/each}}
+      </ul>
+    </div>
+  {{/if}}
+
+  <div class="form-label-group">
+    <input type="text" name="name" id="inputName" class="form-control" placeholder="Name">
+    <label for="inputName">Name</label>
+  </div>
+
+  <div class="form-label-group">
+    <input type="email" name="email" id="inputEmail" class="form-control" placeholder="Email address">
+    <label for="inputEmail">Email address</label>
+  </div>
+
+  <div class="form-label-group">
+    <input type="password" name="password" id="inputPassword" class="form-control" placeholder="Password">
+    <label for="inputPassword">Password</label>
+  </div>
+
+  <div class="form-label-group">
+    <input type="password" name="confirm_password" id="inputConfirmPassword" class="form-control" placeholder="Password">
+    <label for="inputConfirmPassword">Confirm password</label>
+  </div>
+
+  <button class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
+  <p class="mt-5 mb-3 text-muted text-center">© {{year}}</p>
+</form>
