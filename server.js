@@ -160,7 +160,19 @@ io.on('connection', (socket) => {
 
         results = [];
         isGamePlaying = false;
+
+        let maxUser = null;
+        let maxScore = 0;
+        usersState.forEach(element => {
+          if(element.score > maxScore) {
+            maxScore = element.score;
+            maxUser = element
+          }
+        })
+        socket.broadcast.emit('toast', { message: `The winner of the Round was player ${maxUser.id}`});
+        socket.emit('toast', { message: `The winner of the Round was player ${maxUser.id}`});
         usersState.forEach((element => element.currentlyPlaying = false));
+        usersState.forEach((element => element.score = 0));
 
         socket.broadcast.emit('toast', {message: "The next round will start in 3 seconds"});
         //socket.emit('toast', "The next round will start in 3 seconds");
