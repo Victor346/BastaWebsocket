@@ -27,6 +27,8 @@ function connectToSocketIo() {
   window.socket.on('welcomeMessage', function (data) {
     makeToastMessage("Bienvenido al juego");
     id = data.id;
+    
+    $('#numeroJugador').html(id);
   });
 
   window.socket.on('gameStarts', function(data){
