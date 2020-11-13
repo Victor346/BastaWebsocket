@@ -80,6 +80,7 @@ io.on('connection', (socket) => {
   console.log(users);
   
   socket.emit('welcomeMessage', {id: randomNumber});
+  socket.broadcast.emit('toast', { message: `Player ${randomNumber} connected` });
 
 
   if (users.size >=  2 && !areEnoughUsers && !isGamePlaying) {
@@ -95,8 +96,10 @@ io.on('connection', (socket) => {
     socket.broadcast.emit("gameStarts", {char: randomLetter});
     socket.emit("gameStarts", {char: randomLetter})
   } else if (users.size >= 2 && isGamePlaying) {
-    socket.broadcast.emit('toast', { message: "Wait until next round starts" })
-  } 
+    socket.emit('toast', { message: "Wait until next round starts" })
+  }  else if (users.size < 2) {
+    socket.emit('toast', { message: "Not enough players, wait for new players" })
+  }
 
  
   socket.on('disconnect', function(){
@@ -104,11 +107,23 @@ io.on('connection', (socket) => {
     usersState = usersState.filter(element => element.id != randomNumber);
     if( users.size < 2) {
       areEnoughUsers = false;
-      socket.broadcast.emit('toast', { message: "Not enough players" })
+      
+      if (isGamePlaying) {
+        isGamePlaying = false;
+        socket.broadcast.emit('toast', { message: "Round cancelled because player disconnected" });
+      } else {
+        socket.broadcast.emit('toast', { message: "Other players disconnected wait for new players to start playing" });
+      }
+
+      
     }
   });
 
   socket.on('pressBasta', (data) => {
+    if(!isGamePlaying) { 
+      socket.emit('toast', "You are not currently playing wait for next round to start")
+      return;
+     }
     if (!usersState.filter((user) => user.id === data.id)[0].currentlyPlaying) {
       socket.emit('toast', "You are not currently playing wait for next round to start")
       return;
@@ -120,12 +135,17 @@ io.on('connection', (socket) => {
 
       setTimeout(() => {
         results.forEach((result) => {
+          let categories = ['nombre', 'color', 'fruto'];
           //TODO
-          let score = 10;
-          //if palabra no valida
-          score = 0;
-          //if palabra repetida
-          score = 5;
+          let nombreScore = 10;
+          let colorScore = 10;
+          let frutoScore = 10;
+
+          if(results.filter((element) => { element.nombre === result.nombre }).length > 1) { nombreScore = 5; }
+          if(results.filter((element) => { element.color === result.color }).length > 1) { colorScore = 5; }
+          if(results.filter((element) => { element.fruto === result.fruto }).length > 1) { frutoScore = 5; }
+          
+          let score = nombreScore + colorScore + frutoScore;
 
    
 
@@ -136,12 +156,15 @@ io.on('connection', (socket) => {
         });
 
         results = [];
+        isGamePlaying = false;
         usersState.forEach((element => element.currentlyPlaying = false));
 
         socket.broadcast.emit('toast', {message: "The next round will start in 3 seconds"});
         //socket.emit('toast', "The next round will start in 3 seconds");
         setTimeout(() => {
             if(areEnoughUsers) {
+              isGamePlaying = true;
+
               let randomLetter = String.fromCharCode(Math.random() * (91 - 65) + 65);
               usersState.forEach((element => element.currentlyPlaying = true));
     
@@ -165,6 +188,8 @@ io.on('connection', (socket) => {
       color: data.color,
       fruto: data.fruto,
     });
+
+    usersState.filter((user) => user.id === data.id)[0].currentlyPlaying = false;
     
   });
 });

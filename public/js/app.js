@@ -30,7 +30,7 @@ function connectToSocketIo() {
   });
 
   window.socket.on('gameStarts', function(data){
-    //TODO
+    $('#letraActual').html(data.char);
     console.log(data);
   });
 }
