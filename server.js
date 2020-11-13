@@ -60,6 +60,7 @@ let isGamePlaying = false;
 let areEnoughUsers = false;
 let isBastaPressed = false;
 let results = [];
+let randomLetter = null;
 
 io.on('connection', (socket) => {
   // Recibe la conexión del cliente
@@ -87,7 +88,7 @@ io.on('connection', (socket) => {
     isGamePlaying = true;
     areEnoughUsers = true;
 
-    let randomLetter = String.fromCharCode(Math.random() * (91 - 65) + 65);
+    randomLetter = String.fromCharCode(Math.random() * (91 - 65) + 65);
     usersState.forEach((element => element.currentlyPlaying = true));
     
     socket.broadcast.emit('toast', { message: "Round is starting" })
@@ -121,11 +122,15 @@ io.on('connection', (socket) => {
 
   socket.on('pressBasta', (data) => {
     if(!isGamePlaying) { 
-      socket.emit('toast', "You are not currently playing wait for next round to start")
+      socket.emit('toast', {message: "You are not currently playing wait for next round to start"});
       return;
-     }
+    }
+    if (results.filter((result) => result.id === data.id).length > 0) {
+      socket.emit('toast', {message: "You have already submitted an answer, wait until the round is over"});
+      return;
+    }
     if (!usersState.filter((user) => user.id === data.id)[0].currentlyPlaying) {
-      socket.emit('toast', "You are not currently playing wait for next round to start")
+      socket.emit('toast', {message: "You are not currently playing wait for next round to start"});
       return;
     }
     if(!isBastaPressed) { 
@@ -136,6 +141,7 @@ io.on('connection', (socket) => {
       setTimeout(() => {
         socket.broadcast.emit('toast', {message: "Round finished!!!!!!!!"});
         socket.emit('toast', {message: "Round finished!!!!!!!!"});
+        isBastaPressed = false;
 
         results.forEach((result) => {
           let categories = ['nombre', 'color', 'fruto'];
@@ -144,13 +150,20 @@ io.on('connection', (socket) => {
           let colorScore = 10;
           let frutoScore = 10;
 
-          if(results.filter((element) => { element.nombre === result.nombre }).length > 1) { nombreScore = 5; }
-          if(results.filter((element) => { element.color === result.color }).length > 1) { colorScore = 5; }
-          if(results.filter((element) => { element.fruto === result.fruto }).length > 1) { frutoScore = 5; }
+          if(results.filter((element) => element.nombre === result.nombre).length > 1) { nombreScore = 5; }
+          if(results.filter((element) => element.color === result.color).length > 1) { colorScore = 5; }
+          if(results.filter((element) => element.fruto === result.fruto).length > 1) { frutoScore = 5; }
+          
+          if(result.nombre === "") { nombreScore = 0; }
+          if(result.color === "") { colorScore = 0; }
+          if(result.fruto === "") { frutoScore = 0; }
+          
+          let regex = new RegExp(`(${randomLetter}|${randomLetter.toLowerCase()})\\w{2,}`)
+          if(!regex.test(result.nombre)) { nombreScore = 0; }
+          if(!regex.test(result.color)) { colorScore = 0; }
+          if(!regex.test(result.fruto)) { frutoScore = 0; }
           
           let score = nombreScore + colorScore + frutoScore;
-
-   
 
           let user = usersState.filter((user) => user.id === result.id)[0];
 
@@ -162,7 +175,7 @@ io.on('connection', (socket) => {
         isGamePlaying = false;
 
         let maxUser = null;
-        let maxScore = 0;
+        let maxScore = -1;
         usersState.forEach(element => {
           if(element.score > maxScore) {
             maxScore = element.score;
@@ -180,7 +193,7 @@ io.on('connection', (socket) => {
             if(areEnoughUsers) {
               isGamePlaying = true;
 
-              let randomLetter = String.fromCharCode(Math.random() * (91 - 65) + 65);
+              randomLetter = String.fromCharCode(Math.random() * (91 - 65) + 65);
               usersState.forEach((element => element.currentlyPlaying = true));
     
               socket.broadcast.emit('toast', { message: "Round is starting" });
