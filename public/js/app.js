@@ -12,6 +12,8 @@ function makeToastMessage(message) {
   });
 }
 
+let id = null;
+
 window.socket = null;
 function connectToSocketIo() {
   let server = window.location.protocol + "//" + window.location.host;
@@ -21,12 +23,28 @@ function connectToSocketIo() {
     // Muestra el mensaje
     makeToastMessage(data.message);
   });
+
+  window.socket.on('welcomeMessage', function (data) {
+    makeToastMessage("Bienvenido al juego");
+    id = data.id;
+  });
+
+  window.socket.on('gameStarts', function(data){
+    //TODO
+    console.log(data);
+  });
 }
 
-function emitEventToSocketIo() {
-  let text = $('#messageToServer').val();
+function SendResults() {
+  let message = {
+    nombre: $('#nombreWord').val(),
+    color: $('#colorWord').val(),
+    fruto: $('#frutoWord').val(),
+    id: id,
+  }
+
   // Envía un mensaje
-  window.socket.emit('messageToServer', { text: text });
+  window.socket.emit('pressBasta', message);
 }
 
 $(function () {

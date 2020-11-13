@@ -1,11 +1,12 @@
 {
-  "name": "06-todo-list",
+  "name": "basta-websockets",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "webpack --mode development"
+    "build": "webpack --mode development",
+    "start": "node server.js"
   },
   "keywords": [],
   "author": "",
