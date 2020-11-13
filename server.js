@@ -134,6 +134,9 @@ io.on('connection', (socket) => {
       socket.emit('toast', {message: "The round will finish in 10 seconds"});
 
       setTimeout(() => {
+        socket.broadcast.emit('toast', {message: "Round finished!!!!!!!!"});
+        socket.emit('toast', {message: "Round finished!!!!!!!!"});
+
         results.forEach((result) => {
           let categories = ['nombre', 'color', 'fruto'];
           //TODO
